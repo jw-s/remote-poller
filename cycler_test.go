@@ -1,0 +1,119 @@
+package remote_poller
+
+import (
+	//"fmt"
+	"testing"
+	"time"
+)
+
+type testPolledDirectory struct {
+	elements []Element
+}
+
+func (pd *testPolledDirectory) ListFiles() ([]Element, error) {
+	return pd.elements, nil
+
+}
+
+func createTime(t string) time.Time {
+	tm, _ := time.Parse(time.Kitchen, t)
+	return tm
+}
+
+func TestPollCycle_NotifyFirstCycle(t *testing.T) {
+	add, del, mod := make(chan<- Event), make(chan<- Event, 1), make(chan<- Event)
+
+	elements := []Element{
+		&testElement{name: "1"}}
+
+	pd := testPolledDirectory{elements}
+
+	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+
+	//trigger first run, gets initial cache
+	pc.Notify(add, del, mod)
+
+	for _, e := range elements {
+		if _, ok := pc.cachedElements[e.Name()]; !ok {
+			t.Errorf("%s should exist in cache", e.Name())
+		}
+	}
+
+}
+
+func TestPollCycle_NotifyDeleted(t *testing.T) {
+
+	add, del, mod := make(chan<- Event), make(chan<- Event, 1), make(chan<- Event)
+
+	elements := []Element{
+		&testElement{name: "1", isDirectory: false},
+		&testElement{name: "2", isDirectory: false}}
+
+	pd := testPolledDirectory{elements}
+
+	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+
+	//trigger first run, gets initial cache
+	pc.Notify(add, del, mod)
+
+	pd.elements = append(elements[:len(elements)-1])
+
+	// trigger another run
+	pc.Notify(add, del, mod)
+
+	if e, ok := pc.cachedElements["2"]; ok {
+		t.Errorf("%s shouldn't exist in cache", e.Name())
+	}
+
+}
+
+func TestPollCycle_NotifyAdded(t *testing.T) {
+
+	add, del, mod := make(chan<- Event, 1), make(chan<- Event), make(chan<- Event)
+
+	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
+
+	pd := testPolledDirectory{elements}
+
+	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+
+	//trigger first run, gets initial cache
+	pc.Notify(add, del, mod)
+
+	toBeAddedElement := &testElement{name: "3"}
+	pd.elements = append(elements, toBeAddedElement)
+	// trigger another run
+	pc.Notify(add, del, mod)
+
+	if _, ok := pc.cachedElements["3"]; !ok {
+		t.Errorf("Element name %s should have been added and exist in cache", toBeAddedElement.Name())
+	}
+
+}
+
+func TestPollCycle_NotifyModified(t *testing.T) {
+
+	add, del, mod := make(chan<- Event), make(chan<- Event), make(chan<- Event, 1)
+
+	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
+
+	pd := testPolledDirectory{elements}
+
+	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+
+	//trigger first run, gets initial cache
+	pc.Notify(add, del, mod)
+
+	elements[0] = &testElement{name: "1", lastModified: createTime("12:00PM")}
+
+	// trigger another run
+	pc.Notify(add, del, mod)
+
+	if e, ok := pc.cachedElements["1"]; ok {
+		if "0000-01-01 12:00:00 +0000 UTC" != e.LastModified().String() {
+			t.Errorf("%d", e.LastModified())
+		}
+
+	}
+
+}

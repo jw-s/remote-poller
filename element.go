@@ -12,27 +12,19 @@ type Element interface {
 }
 
 type FileElement struct {
-	*os.File
+	os.FileInfo
 }
 
 func (f *FileElement) Name() string {
-	return f.File.Name()
+	return f.FileInfo.Name()
 }
 
 func (f *FileElement) LastModified() time.Time {
-	info, err := f.Stat()
-	if err != nil {
-		panic(err)
-	}
 
-	return info.ModTime()
+	return f.FileInfo.ModTime()
 }
 
 func (f *FileElement) IsDirectory() bool {
-	info, err := f.Stat()
-	if err != nil {
-		panic(err)
-	}
 
-	return info.IsDir()
+	return f.FileInfo.IsDir()
 }

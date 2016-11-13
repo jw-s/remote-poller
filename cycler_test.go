@@ -28,7 +28,7 @@ func TestPollCycle_NotifyFirstCycle(t *testing.T) {
 
 	pd := testPolledDirectory{elements}
 
-	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+	pc := pollCycle{firstRun: true, polledDirectory: &pd}
 
 	//trigger first run, gets initial cache
 	pc.Notify(add, del, mod)
@@ -51,7 +51,7 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 
 	pd := testPolledDirectory{elements}
 
-	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+	pc := pollCycle{firstRun: true, polledDirectory: &pd}
 
 	//trigger first run, gets initial cache
 	pc.Notify(add, del, mod)
@@ -75,7 +75,7 @@ func TestPollCycle_NotifyAdded(t *testing.T) {
 
 	pd := testPolledDirectory{elements}
 
-	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+	pc := pollCycle{firstRun: true, polledDirectory: &pd}
 
 	//trigger first run, gets initial cache
 	pc.Notify(add, del, mod)
@@ -99,7 +99,7 @@ func TestPollCycle_NotifyModified(t *testing.T) {
 
 	pd := testPolledDirectory{elements}
 
-	pc := PollCycle{firstRun: true, polledDirectory: &pd}
+	pc := pollCycle{firstRun: true, polledDirectory: &pd}
 
 	//trigger first run, gets initial cache
 	pc.Notify(add, del, mod)

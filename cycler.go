@@ -13,14 +13,14 @@ type PolledDirectory interface {
 	ListFiles() ([]Element, error)
 }
 
-type PollCycle struct {
+type pollCycle struct {
 	firstRun        bool
 	mux             sync.Mutex
 	polledDirectory PolledDirectory
 	cachedElements  map[string]Element
 }
 
-func (pc *PollCycle) detectDeletedFiles(del chan<- Event, mod chan<- Event, newElements map[string]Element) {
+func (pc *pollCycle) detectDeletedFiles(del chan<- Event, mod chan<- Event, newElements map[string]Element) {
 	defer handleClientError()
 
 	for k, v := range pc.cachedElements {
@@ -34,7 +34,7 @@ func (pc *PollCycle) detectDeletedFiles(del chan<- Event, mod chan<- Event, newE
 	}
 }
 
-func (pc *PollCycle) detectAddedFiles(add chan<- Event, newElements map[string]Element) {
+func (pc *pollCycle) detectAddedFiles(add chan<- Event, newElements map[string]Element) {
 
 	defer handleClientError()
 
@@ -45,7 +45,7 @@ func (pc *PollCycle) detectAddedFiles(add chan<- Event, newElements map[string]E
 	}
 }
 
-func (pc *PollCycle) Notify(add chan<- Event, del chan<- Event, mod chan<- Event) error {
+func (pc *pollCycle) Notify(add chan<- Event, del chan<- Event, mod chan<- Event) error {
 	var wg sync.WaitGroup
 
 	defer pc.mux.Unlock()

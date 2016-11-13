@@ -6,9 +6,7 @@ import (
 )
 
 type triggerChannels struct {
-	add chan Event
-	mod chan Event
-	del chan Event
+	add, mod, del chan Event
 }
 
 type Ticker interface {
@@ -25,18 +23,27 @@ func (t *ticker) Tick() <-chan time.Time { return t.C }
 
 func (t *ticker) Stop() { t.Ticker.Stop() }
 
-func NewTicker(d time.Duration) *ticker {
+func newTicker(d time.Duration) *ticker {
 	return &ticker{time.NewTicker(d), d}
 }
 
-type Poller struct {
+type poller struct {
 	tc     *triggerChannels
 	ticker Ticker
 	cycler Cycler
 	em     EventManager
 }
 
-func (p *Poller) Start() {
+func NewPoller(d time.Duration, pollDir PolledDirectory, listeners []Receiver) *poller {
+
+	tc := &triggerChannels{make(chan Event), make(chan Event), make(chan Event)}
+	cycler := pollCycle{firstRun: true, polledDirectory: pollDir}
+
+	return &poller{tc, newTicker(d), &cycler, &EventTriggerManager{listeners}}
+
+}
+
+func (p *poller) Start() {
 	add, mod, del := p.tc.add, p.tc.mod, p.tc.del
 
 	go p.em.OnFileAdded(add)
@@ -65,6 +72,6 @@ func (p *Poller) Start() {
 	}()
 }
 
-func (p *Poller) Stop() {
+func (p *poller) Stop() {
 	p.ticker.Stop()
 }

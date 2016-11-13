@@ -15,45 +15,40 @@ type PolledDirectory interface {
 
 type pollCycle struct {
 	firstRun        bool
-	mux             sync.Mutex
 	polledDirectory PolledDirectory
-	cachedElements  map[string]Element
+	cachedElements  chan map[string]Element
 }
 
-func (pc *pollCycle) detectDeletedFiles(del chan<- Event, mod chan<- Event, newElements map[string]Element) {
+func (pc *pollCycle) detectDeletedFiles(del chan<- Event, mod chan<- Event, cachedElements, newElements map[string]Element) {
 	defer handleClientError()
 
-	for k, v := range pc.cachedElements {
+	for k, v := range cachedElements {
+
 		if ne, ok := newElements[k]; !ok {
 			del <- &triggeredEvent{v}
-		} else {
-			if !v.LastModified().Equal(ne.LastModified()) {
-				mod <- &triggeredEvent{v}
-			}
+		} else if !v.LastModified().Equal(ne.LastModified()) {
+			mod <- &triggeredEvent{v}
 		}
 	}
 }
 
-func (pc *pollCycle) detectAddedFiles(add chan<- Event, newElements map[string]Element) {
+func (pc *pollCycle) detectAddedFiles(add chan<- Event, cachedElements, newElements map[string]Element) {
 
 	defer handleClientError()
 
 	for k, v := range newElements {
-		if _, ok := pc.cachedElements[k]; !ok {
+		if _, ok := cachedElements[k]; !ok {
 			add <- &triggeredEvent{v}
 		}
 	}
 }
 
-func (pc *pollCycle) Notify(add chan<- Event, del chan<- Event, mod chan<- Event) error {
+func (pc *pollCycle) Notify(add chan<- Event, mod chan<- Event, del chan<- Event) error {
 	var wg sync.WaitGroup
-
-	defer pc.mux.Unlock()
-	pc.mux.Lock()
 
 	if pc.firstRun {
 
-		pc.cachedElements = make(map[string]Element)
+		initialElements := make(map[string]Element)
 		elements, err := pc.polledDirectory.ListFiles()
 
 		if err != nil {
@@ -61,13 +56,17 @@ func (pc *pollCycle) Notify(add chan<- Event, del chan<- Event, mod chan<- Event
 		}
 
 		for _, e := range elements {
-			pc.cachedElements[e.Name()] = e
+			initialElements[e.Name()] = e
 		}
 
 		pc.firstRun = false
 
+		pc.cachedElements <- initialElements
+
 		return nil
 	}
+
+	cachedElements := <-pc.cachedElements
 
 	newElements := make(map[string]Element)
 
@@ -82,19 +81,19 @@ func (pc *pollCycle) Notify(add chan<- Event, del chan<- Event, mod chan<- Event
 	}
 
 	wg.Add(2)
-	go func() {
+	go func(cachedElements, newElements map[string]Element) {
 		defer wg.Done()
-		pc.detectDeletedFiles(del, mod, newElements)
-	}()
+		pc.detectDeletedFiles(del, mod, cachedElements, newElements)
+	}(cachedElements, newElements)
 
-	go func() {
+	go func(cachedElements, newElements map[string]Element) {
 		defer wg.Done()
-		pc.detectAddedFiles(add, newElements)
-	}()
+		pc.detectAddedFiles(add, cachedElements, newElements)
+	}(cachedElements, newElements)
 
 	wg.Wait()
 
-	pc.cachedElements = newElements
+	pc.cachedElements <- newElements
 
 	return nil
 }

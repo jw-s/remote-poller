@@ -27,7 +27,7 @@ func TestPoller_Start(t *testing.T) {
 	ticker := &testTicker{tickerChan}
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 	pd := &testPolledDirectory{elements}
-	pc := &pollCycle{polledDirectory: pd}
+	pc := &pollCycle{polledDirectory: pd, cachedElements: make(chan map[string]Element, 1)}
 
 	notifyChan := make(chan bool)
 
@@ -56,7 +56,7 @@ func TestPoller_Stop(t *testing.T) {
 	ticker := &testTicker{tickerChan}
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 	pd := &testPolledDirectory{elements}
-	pc := &pollCycle{polledDirectory: pd}
+	pc := &pollCycle{polledDirectory: pd, cachedElements: make(chan map[string]Element, 1)}
 
 	notifyChan := make(chan bool)
 

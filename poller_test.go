@@ -28,7 +28,14 @@ func TestPoller_Start(t *testing.T) {
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 	pd := &testPolledDirectory{elements}
 	pc := &PollCycle{polledDirectory: pd}
-	poller := Poller{tc: tc, ticker: ticker, cycler: pc}
+
+	notifyChan := make(chan bool)
+
+	listeners := []Receiver{testReceiver{notify: notifyChan}}
+
+	em := EventTriggerManager{receivers: listeners}
+
+	poller := Poller{tc: tc, ticker: ticker, cycler: pc, em: &em}
 
 	poller.Start()
 
@@ -50,7 +57,14 @@ func TestPoller_Stop(t *testing.T) {
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 	pd := &testPolledDirectory{elements}
 	pc := &PollCycle{polledDirectory: pd}
-	poller := Poller{tc: tc, ticker: ticker, cycler: pc}
+
+	notifyChan := make(chan bool)
+
+	listeners := []Receiver{testReceiver{notify: notifyChan}}
+
+	em := EventTriggerManager{receivers: listeners}
+
+	poller := Poller{tc: tc, ticker: ticker, cycler: pc, em: &em}
 
 	poller.Start()
 	poller.Stop()

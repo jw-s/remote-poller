@@ -33,10 +33,16 @@ type Poller struct {
 	tc     *triggerChannels
 	ticker Ticker
 	cycler Cycler
+	em     EventManager
 }
 
 func (p *Poller) Start() {
 	add, mod, del := p.tc.add, p.tc.mod, p.tc.del
+
+	go p.em.OnFileAdded(add)
+	go p.em.OnFileModified(mod)
+	go p.em.OnFileDeleted(del)
+
 	ticker := p.ticker
 	go func() {
 		for {

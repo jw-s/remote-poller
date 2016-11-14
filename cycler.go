@@ -1,4 +1,4 @@
-package remote_poller
+package poller
 
 import (
 	"log"

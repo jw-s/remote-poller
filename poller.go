@@ -1,4 +1,4 @@
-package remote_poller
+package poller
 
 import (
 	"log"
@@ -17,16 +17,11 @@ type ticker interface {
 
 type pollTicker struct {
 	*time.Ticker
-	d time.Duration
 }
 
 func (t *pollTicker) Tick() <-chan time.Time { return t.C }
 
 func (t *pollTicker) Stop() { t.Ticker.Stop() }
-
-func newTicker(d time.Duration) *pollTicker {
-	return &pollTicker{time.NewTicker(d), d}
-}
 
 type poller struct {
 	tc     *triggerChannels
@@ -41,7 +36,7 @@ func NewPoller(d time.Duration, pollDir PolledDirectory, listeners []Receiver) *
 	tc := &triggerChannels{make(chan Event), make(chan Event), make(chan Event)}
 	cycler := pollCycle{firstRun: true, polledDirectory: pollDir, cachedElements: make(chan map[string]Element)}
 
-	return &poller{tc, newTicker(d), &cycler, &eventTriggerManager{listeners}}
+	return &poller{tc, &pollTicker{time.NewTicker(d)}, &cycler, &eventTriggerManager{listeners}}
 
 }
 

@@ -1,4 +1,4 @@
-package remote_poller
+package poller
 
 // Event interface used to provide listeners with triggerCause.
 type Event interface {

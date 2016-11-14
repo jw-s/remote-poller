@@ -1,4 +1,4 @@
-package remote_poller
+package poller
 
 // Receiver can be registered as a listener to a PolledDirectory.
 //

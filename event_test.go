@@ -32,7 +32,7 @@ func TestEventTrigger_OnEvents(t *testing.T) {
 
 	listeners = append(listeners, r, r)
 
-	em := EventTriggerManager{receivers: listeners}
+	em := eventTriggerManager{receivers: listeners}
 
 	testElement := &testElement{name: "testElement"}
 

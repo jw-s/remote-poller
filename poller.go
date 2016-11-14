@@ -10,40 +10,42 @@ type triggerChannels struct {
 	add, mod, del chan Event
 }
 
-type Ticker interface {
+type ticker interface {
 	Tick() <-chan time.Time
 	Stop()
 }
 
-type ticker struct {
+type pollTicker struct {
 	*time.Ticker
 	d time.Duration
 }
 
-func (t *ticker) Tick() <-chan time.Time { return t.C }
+func (t *pollTicker) Tick() <-chan time.Time { return t.C }
 
-func (t *ticker) Stop() { t.Ticker.Stop() }
+func (t *pollTicker) Stop() { t.Ticker.Stop() }
 
-func newTicker(d time.Duration) *ticker {
-	return &ticker{time.NewTicker(d), d}
+func newTicker(d time.Duration) *pollTicker {
+	return &pollTicker{time.NewTicker(d), d}
 }
 
 type poller struct {
 	tc     *triggerChannels
-	ticker Ticker
-	cycler Cycler
-	em     EventManager
+	ticker ticker
+	cycler cycler
+	em     eventManager
 }
 
+// Creates a poller used to trigger the Cycler at specified interval.
 func NewPoller(d time.Duration, pollDir PolledDirectory, listeners []Receiver) *poller {
 
 	tc := &triggerChannels{make(chan Event), make(chan Event), make(chan Event)}
 	cycler := pollCycle{firstRun: true, polledDirectory: pollDir, cachedElements: make(chan map[string]Element)}
 
-	return &poller{tc, newTicker(d), &cycler, &EventTriggerManager{listeners}}
+	return &poller{tc, newTicker(d), &cycler, &eventTriggerManager{listeners}}
 
 }
 
+// Starts the poller and triggers cycle at set interval.
 func (p *poller) Start() {
 	log.SetOutput(os.Stdout)
 	log.Println("Starting poller")
@@ -59,6 +61,7 @@ func (p *poller) Start() {
 		for {
 			select {
 			case _, open := <-ticker.Tick():
+				log.Println("Starting poll cycle")
 				if !open {
 					return
 				}
@@ -75,6 +78,7 @@ func (p *poller) Start() {
 	}()
 }
 
+// Stops the poller.
 func (p *poller) Stop() {
 	p.ticker.Stop()
 }

@@ -5,10 +5,13 @@ import (
 	"sync"
 )
 
-type Cycler interface {
+// Cycler is an interface used to notify channels of changes to Elements.
+type cycler interface {
 	Notify(chan<- Event, chan<- Event, chan<- Event) error
 }
 
+// PolledDirectory is the interface used to provide a listing of Files.
+// ListFiles must return both []Elements and possibly an error.
 type PolledDirectory interface {
 	ListFiles() ([]Element, error)
 }

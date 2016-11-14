@@ -21,14 +21,14 @@ func (te *testElement) IsDirectory() bool {
 	return te.isDirectory
 }
 
-func TestElementName(t *testing.T) {
+func TestElement_Name(t *testing.T) {
 	e := testElement{name: "e"}
 	if actual := e.name; "e" != actual {
 		t.Errorf("Expected e and got %s", actual)
 	}
 }
 
-func TestElementLastModified(t *testing.T) {
+func TestElement_LastModified(t *testing.T) {
 	var date time.Time
 
 	e := testElement{lastModified: date}
@@ -38,7 +38,7 @@ func TestElementLastModified(t *testing.T) {
 	}
 }
 
-func TestElementIsDirectory(t *testing.T) {
+func TestElement_IsDirectory(t *testing.T) {
 
 	e := testElement{isDirectory: false}
 

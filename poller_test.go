@@ -33,7 +33,7 @@ func TestPoller_Start(t *testing.T) {
 
 	listeners := []Receiver{testReceiver{notify: notifyChan}}
 
-	em := EventTriggerManager{receivers: listeners}
+	em := eventTriggerManager{receivers: listeners}
 
 	poller := poller{tc: tc, ticker: ticker, cycler: pc, em: &em}
 
@@ -62,7 +62,7 @@ func TestPoller_Stop(t *testing.T) {
 
 	listeners := []Receiver{testReceiver{notify: notifyChan}}
 
-	em := EventTriggerManager{receivers: listeners}
+	em := eventTriggerManager{receivers: listeners}
 
 	poller := poller{tc: tc, ticker: ticker, cycler: pc, em: &em}
 

@@ -20,7 +20,7 @@ func createTime(t string) time.Time {
 }
 
 func TestPollCycle_NotifyFirstCycle(t *testing.T) {
-	add, mod, del := make(chan<- Event), make(chan<- Event), make(chan<- Event)
+	add, mod, del := make(chan Event), make(chan Event), make(chan Event)
 
 	elements := []Element{
 		&testElement{name: "1"}}
@@ -44,11 +44,11 @@ func TestPollCycle_NotifyFirstCycle(t *testing.T) {
 
 func TestPollCycle_NotifyDeleted(t *testing.T) {
 
-	add, mod, del := make(chan<- Event), make(chan<- Event), make(chan<- Event, 1)
+	add, mod, del := make(chan Event), make(chan Event), make(chan Event, 1)
 
 	elements := []Element{
-		&testElement{name: "1", isDirectory: false},
-		&testElement{name: "2", isDirectory: false}}
+		&testElement{name: "1"},
+		&testElement{name: "2"}}
 
 	pd := testPolledDirectory{elements}
 
@@ -72,7 +72,7 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 
 func TestPollCycle_NotifyAdded(t *testing.T) {
 
-	add, mod, del := make(chan<- Event, 1), make(chan<- Event), make(chan<- Event)
+	add, mod, del := make(chan Event, 1), make(chan Event), make(chan Event)
 
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 
@@ -98,7 +98,7 @@ func TestPollCycle_NotifyAdded(t *testing.T) {
 
 func TestPollCycle_NotifyModified(t *testing.T) {
 
-	add, mod, del := make(chan<- Event), make(chan<- Event, 1), make(chan<- Event)
+	add, mod, del := make(chan Event), make(chan Event, 1), make(chan Event)
 
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 

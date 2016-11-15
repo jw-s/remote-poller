@@ -27,16 +27,18 @@ type poller struct {
 	tc     *triggerChannels
 	ticker ticker
 	cycler cycler
-	em     eventManager
 }
 
 // Creates a poller used to trigger the Cycler at specified interval.
 func NewPoller(d time.Duration, pollDir PolledDirectory, listeners []Receiver) *poller {
 
-	tc := &triggerChannels{make(chan Event), make(chan Event), make(chan Event)}
-	cycler := pollCycle{firstRun: true, polledDirectory: pollDir, cachedElements: make(chan map[string]Element)}
+	tc := triggerChannels{make(chan Event, 1), make(chan Event, 1), make(chan Event, 1)}
+	cycler := pollCycle{firstRun: true,
+		polledDirectory: pollDir,
+		cachedElements:  make(chan map[string]Element, 1),
+		em:              &eventTriggerManager{listeners}}
 
-	return &poller{tc, &pollTicker{time.NewTicker(d)}, &cycler, &eventTriggerManager{listeners}}
+	return &poller{&tc, &pollTicker{time.NewTicker(d)}, &cycler}
 
 }
 
@@ -47,16 +49,12 @@ func (p *poller) Start() {
 	log.Println("Will start polling after initial tick...")
 	add, mod, del := p.tc.add, p.tc.mod, p.tc.del
 
-	go p.em.OnFileAdded(add)
-	go p.em.OnFileModified(mod)
-	go p.em.OnFileDeleted(del)
-
 	ticker := p.ticker
 	go func() {
 		for {
 			select {
 			case _, open := <-ticker.Tick():
-				log.Println("Starting poll cycle")
+
 				if !open {
 					return
 				}
@@ -76,4 +74,7 @@ func (p *poller) Start() {
 // Stops the poller.
 func (p *poller) Stop() {
 	p.ticker.Stop()
+	close(p.tc.mod)
+	close(p.tc.add)
+	close(p.tc.del)
 }

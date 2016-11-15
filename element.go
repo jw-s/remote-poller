@@ -32,13 +32,13 @@ func (f *FileElement) Name() string {
 	return f.FileInfo.Name()
 }
 
-// modified time of file returned by FileInfo
+// LastModified time of file returned by FileInfo
 func (f *FileElement) LastModified() time.Time {
 
 	return f.FileInfo.ModTime()
 }
 
-// checks if directory returned by FileInfo
+// IsDirectory returned by FileInfo
 func (f *FileElement) IsDirectory() bool {
 
 	return f.FileInfo.IsDir()

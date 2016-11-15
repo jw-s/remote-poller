@@ -31,37 +31,39 @@ type eventTriggerManager struct {
 }
 
 func (em *eventTriggerManager) OnFileAdded(eventChan <-chan Event) {
-	for {
-		select {
-		case event := <-eventChan:
-			for _, r := range em.receivers {
-				go r.OnFileAdded(event)
-			}
-		}
+	event, open := <-eventChan
 
+	if !open {
+		return
 	}
+
+	for _, r := range em.receivers {
+		go r.OnFileAdded(event)
+	}
+
 }
 
 func (em *eventTriggerManager) OnFileDeleted(eventChan <-chan Event) {
-	for {
-		select {
-		case event := <-eventChan:
-			for _, r := range em.receivers {
-				go r.OnFileDeleted(event)
-			}
-		}
+	event, open := <-eventChan
 
+	if !open {
+		return
 	}
+
+	for _, r := range em.receivers {
+		go r.OnFileDeleted(event)
+	}
+
 }
 
 func (em *eventTriggerManager) OnFileModified(eventChan <-chan Event) {
-	for {
-		select {
-		case event := <-eventChan:
-			for _, r := range em.receivers {
-				go r.OnFileModified(event)
-			}
-		}
+	event, open := <-eventChan
 
+	if !open {
+		return
+	}
+
+	for _, r := range em.receivers {
+		go r.OnFileModified(event)
 	}
 }

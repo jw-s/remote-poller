@@ -23,7 +23,7 @@ and be used to create simple filesystem polling examples.
 
 ## Example
 
-```
+```go
 package main
    
    import (

@@ -57,8 +57,8 @@ func (pc *pollCycle) detectAddedFilesAndNotify(add chan Event, cachedElements, n
 	}
 }
 
-func sendEventToChannel(evenChan chan<- Event, element Element) {
-	evenChan <- &triggeredEvent{element}
+func sendEventToChannel(eventChan chan<- Event, element Element) {
+	eventChan <- &triggeredEvent{element}
 }
 
 func (pc *pollCycle) onFirstRun() error {

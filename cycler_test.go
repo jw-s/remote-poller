@@ -52,7 +52,10 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 
 	pd := testPolledDirectory{elements}
 
-	pc := pollCycle{firstRun: true, polledDirectory: &pd, cachedElements: make(chan map[string]Element, 1)}
+	pc := pollCycle{firstRun: true,
+		polledDirectory: &pd,
+		cachedElements:  make(chan map[string]Element, 1),
+		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
 
 	//trigger first run, gets initial cache
 	pc.Notify(add, mod, del)
@@ -78,7 +81,10 @@ func TestPollCycle_NotifyAdded(t *testing.T) {
 
 	pd := testPolledDirectory{elements}
 
-	pc := pollCycle{firstRun: true, polledDirectory: &pd, cachedElements: make(chan map[string]Element, 1)}
+	pc := pollCycle{firstRun: true,
+		polledDirectory: &pd,
+		cachedElements:  make(chan map[string]Element, 1),
+		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
 
 	//trigger first run, gets initial cache
 	pc.Notify(add, mod, del)
@@ -104,7 +110,10 @@ func TestPollCycle_NotifyModified(t *testing.T) {
 
 	pd := testPolledDirectory{elements}
 
-	pc := pollCycle{firstRun: true, polledDirectory: &pd, cachedElements: make(chan map[string]Element, 1)}
+	pc := pollCycle{firstRun: true,
+		polledDirectory: &pd,
+		cachedElements:  make(chan map[string]Element, 1),
+		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
 
 	//trigger first run, gets initial cache
 	pc.Notify(add, mod, del)

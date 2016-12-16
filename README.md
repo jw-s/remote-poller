@@ -21,57 +21,5 @@ remote-poller comes with [FileElement](https://github.com/JoelW-S/remote-poller/
 This type can be used to convert golang's os.FileInfo interface to Element 
 and be used to create simple filesystem polling examples.
 
-## Example
-
-```go
-package main
-   
-   import (
-   	"github.com/joelw-s/remote-poller"
-   	"io/ioutil"
-   	"log"
-   	"time"
-   )
-   
-   type polledDirectory struct{}
-   
-   func (pd *polledDirectory) ListFiles() ([]poller.Element, error) {
-   
-   	files, err := ioutil.ReadDir("/test")
-   
-   	if err != nil {
-   		return nil, err
-   	}
-   
-   	var elements []poller.Element
-   
-   	for _, e := range files {
-   		elements = append(elements, &poller.FileElement{FileInfo: e})
-   	}
-   
-   	return elements, nil
-   }
-   
-   type stdOutListener struct{}
-   
-   func (listener *stdOutListener) OnFileAdded(event poller.Event) {
-   	log.Printf("%s has been added", event.TriggerCause().Name())
-   }
-   
-   func (listener *stdOutListener) OnFileDeleted(event poller.Event) {
-   	log.Printf("%s has been deleted", event.TriggerCause().Name())
-   }
-   
-   func (listener *stdOutListener) OnFileModified(event poller.Event) {
-   	log.Printf("%s has been modified", event.TriggerCause().Name())
-   }
-   func main() {
-   	remotePoller := poller.NewPoller(time.Duration(15*time.Second), &polledDirectory{}, []poller.Receiver{&stdOutListener{}})
-   
-   	remotePoller.Start()
-   	time.Sleep(5 * time.Minute)
-   	remotePoller.Stop()
-   }
-```
-
+[Examples](https://github.com/JoelW-S/remote-poller/blob/master/examples)
 

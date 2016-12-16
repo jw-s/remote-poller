@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/joelw-s/remote-poller"
 	"log"
-	"os"
 	"time"
 )
 

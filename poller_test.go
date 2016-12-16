@@ -21,9 +21,7 @@ func TestPoller_Start(t *testing.T) {
 		}
 	}()
 
-	add, del, mod, tickerChan := make(chan Event, 1), make(chan Event, 1), make(chan Event, 1), make(chan time.Time)
-
-	tc := &triggerChannels{add: add, del: del, mod: mod}
+	tickerChan := make(chan time.Time)
 
 	ticker := &testTicker{tickerChan}
 
@@ -37,7 +35,7 @@ func TestPoller_Start(t *testing.T) {
 
 	pc := &pollCycle{polledDirectory: pd, cachedElements: make(chan map[string]Element, 1), em: &eventTriggerManager{receivers: listeners}}
 
-	poller := poller{tc: tc, ticker: ticker, cycler: pc}
+	poller := poller{ticker: ticker, cycler: pc}
 
 	poller.Start()
 
@@ -52,9 +50,7 @@ func TestPoller_Stop(t *testing.T) {
 			t.Error("Channel should be closed")
 		}
 	}()
-	add, del, mod, tickerChan := make(chan Event), make(chan Event), make(chan Event), make(chan time.Time)
-
-	tc := &triggerChannels{add: add, del: del, mod: mod}
+	tickerChan := make(chan time.Time)
 
 	ticker := &testTicker{tickerChan}
 
@@ -68,7 +64,7 @@ func TestPoller_Stop(t *testing.T) {
 
 	pc := &pollCycle{polledDirectory: pd, cachedElements: make(chan map[string]Element, 1), em: &eventTriggerManager{receivers: listeners}}
 
-	poller := poller{tc: tc, ticker: ticker, cycler: pc}
+	poller := poller{ticker: ticker, cycler: pc}
 
 	poller.Start()
 	poller.Stop()

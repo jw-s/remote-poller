@@ -23,9 +23,8 @@ func (r testReceiver) OnFileModified(e Event) {
 
 func TestEventTrigger_OnEvents(t *testing.T) {
 
-	listeners := make([]Receiver, 0)
+	var listeners []Receiver
 
-	addChan, modChan, delChan := make(chan Event), make(chan Event), make(chan Event)
 	notifyChan := make(chan bool)
 
 	r := testReceiver{notify: notifyChan}
@@ -34,19 +33,11 @@ func TestEventTrigger_OnEvents(t *testing.T) {
 
 	em := eventTriggerManager{receivers: listeners}
 
-	testElement := &testElement{name: "testElement"}
+	testEvent := &triggeredEvent{&testElement{name: "testElement"}}
 
-	go em.OnFileAdded(addChan)
-	go em.OnFileModified(modChan)
-	go em.OnFileDeleted(delChan)
-
-	addChan <- &triggeredEvent{e: testElement}
-	modChan <- &triggeredEvent{e: testElement}
-	delChan <- &triggeredEvent{e: testElement}
-
-	go close(addChan)
-	go close(modChan)
-	go close(delChan)
+	go em.OnFileAdded(testEvent)
+	go em.OnFileModified(testEvent)
+	go em.OnFileDeleted(testEvent)
 
 	for i := 0; i < 3; i++ {
 

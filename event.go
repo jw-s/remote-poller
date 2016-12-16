@@ -1,5 +1,7 @@
 package poller
 
+import "sync"
+
 // Event interface used to provide listeners with triggerCause.
 type Event interface {
 	TriggerCause() Element // returns the Element which trigger Event
@@ -17,53 +19,58 @@ func (te triggeredEvent) TriggerCause() Element {
 // to all registered listeners.
 type eventManager interface {
 	// Receives event and processes Files which have been added
-	OnFileAdded(<-chan Event)
+	OnFileAdded(Event)
 
 	// Receives event and processes Files which have been deleted
-	OnFileDeleted(<-chan Event)
+	OnFileDeleted(Event)
 
 	// Receives event and processes Files which have been modified
-	OnFileModified(<-chan Event)
+	OnFileModified(Event)
+
+	// Waits for all events to be processed before shutting down
+	ShutDownAndWait()
 }
 
 type eventTriggerManager struct {
 	receivers []Receiver
+	wg        sync.WaitGroup
 }
 
-func (em *eventTriggerManager) OnFileAdded(eventChan <-chan Event) {
-	event, open := <-eventChan
-
-	if !open {
-		return
-	}
+func (em *eventTriggerManager) OnFileAdded(event Event) {
 
 	for _, r := range em.receivers {
-		go r.OnFileAdded(event)
-	}
-
-}
-
-func (em *eventTriggerManager) OnFileDeleted(eventChan <-chan Event) {
-	event, open := <-eventChan
-
-	if !open {
-		return
-	}
-
-	for _, r := range em.receivers {
-		go r.OnFileDeleted(event)
+		em.wg.Add(1)
+		go func() {
+			defer em.wg.Done()
+			r.OnFileAdded(event)
+		}()
 	}
 
 }
 
-func (em *eventTriggerManager) OnFileModified(eventChan <-chan Event) {
-	event, open := <-eventChan
-
-	if !open {
-		return
-	}
+func (em *eventTriggerManager) OnFileDeleted(event Event) {
 
 	for _, r := range em.receivers {
-		go r.OnFileModified(event)
+		em.wg.Add(1)
+		go func() {
+			defer em.wg.Done()
+			r.OnFileDeleted(event)
+		}()
 	}
+
+}
+
+func (em *eventTriggerManager) OnFileModified(event Event) {
+
+	for _, r := range em.receivers {
+		em.wg.Add(1)
+		go func() {
+			defer em.wg.Done()
+			r.OnFileModified(event)
+		}()
+	}
+}
+
+func (em *eventTriggerManager) ShutDownAndWait() {
+	em.wg.Wait()
 }

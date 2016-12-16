@@ -1,13 +1,15 @@
 package poller
 
 import (
+	"fmt"
 	"log"
 	"sync"
 )
 
 // Cycler is an interface used to notify channels of changes to Elements.
 type cycler interface {
-	Notify(chan Event, chan Event, chan Event) error
+	Notify() error
+	Stop()
 }
 
 // PolledDirectory is the interface used to provide a listing of Files.
@@ -23,26 +25,24 @@ type pollCycle struct {
 	em              eventManager
 }
 
-func (pc *pollCycle) detectDeletedFilesAndNotify(del chan Event, mod chan Event, cachedElements, newElements map[string]Element) {
+func (pc *pollCycle) detectDeletedFilesAndNotify(cachedElements, newElements map[string]Element) {
 	defer handleClientError()
 
 	for k, v := range cachedElements {
 
 		if ne, ok := newElements[k]; !ok {
 
-			go sendEventToChannel(del, v)
-			go pc.em.OnFileDeleted(del)
+			go pc.em.OnFileDeleted(triggeredEvent{v})
 
 		} else if !v.LastModified().Equal(ne.LastModified()) {
 
-			go sendEventToChannel(mod, v)
-			go pc.em.OnFileModified(mod)
+			go pc.em.OnFileModified(&triggeredEvent{v})
 
 		}
 	}
 }
 
-func (pc *pollCycle) detectAddedFilesAndNotify(add chan Event, cachedElements, newElements map[string]Element) {
+func (pc *pollCycle) detectAddedFilesAndNotify(cachedElements, newElements map[string]Element) {
 
 	defer handleClientError()
 
@@ -50,15 +50,10 @@ func (pc *pollCycle) detectAddedFilesAndNotify(add chan Event, cachedElements, n
 
 		if _, ok := cachedElements[k]; !ok {
 
-			go sendEventToChannel(add, v)
-			go pc.em.OnFileAdded(add)
+			go pc.em.OnFileAdded(&triggeredEvent{v})
 
 		}
 	}
-}
-
-func sendEventToChannel(eventChan chan<- Event, element Element) {
-	eventChan <- &triggeredEvent{element}
 }
 
 func (pc *pollCycle) onFirstRun() error {
@@ -71,7 +66,7 @@ func (pc *pollCycle) onFirstRun() error {
 	}
 
 	for _, e := range elements {
-		initialElements[e.Name()] = e
+		initialElements[cachedKeyNameFormat(e)] = e
 	}
 
 	pc.firstRun = false
@@ -82,7 +77,7 @@ func (pc *pollCycle) onFirstRun() error {
 
 }
 
-func (pc *pollCycle) Notify(add chan Event, mod chan Event, del chan Event) error {
+func (pc *pollCycle) Notify() error {
 	var wg sync.WaitGroup
 
 	if pc.firstRun {
@@ -102,23 +97,24 @@ func (pc *pollCycle) Notify(add chan Event, mod chan Event, del chan Event) erro
 	newElements := make(map[string]Element)
 
 	for _, e := range listedFiles {
-		newElements[e.Name()] = e
+
+		newElements[cachedKeyNameFormat(e)] = e
 	}
 
 	wg.Add(2)
-	go func(del, mod chan Event, cachedElements, newElements map[string]Element) {
+	go func(cachedElements, newElements map[string]Element) {
 		defer wg.Done()
 
-		pc.detectDeletedFilesAndNotify(del, mod, cachedElements, newElements)
+		pc.detectDeletedFilesAndNotify(cachedElements, newElements)
 
-	}(del, mod, cachedElements, newElements)
+	}(cachedElements, newElements)
 
-	go func(add chan Event, cachedElements, newElements map[string]Element) {
+	go func(cachedElements, newElements map[string]Element) {
 		defer wg.Done()
 
-		pc.detectAddedFilesAndNotify(add, cachedElements, newElements)
+		pc.detectAddedFilesAndNotify(cachedElements, newElements)
 
-	}(add, cachedElements, newElements)
+	}(cachedElements, newElements)
 
 	wg.Wait()
 
@@ -127,8 +123,17 @@ func (pc *pollCycle) Notify(add chan Event, mod chan Event, del chan Event) erro
 	return nil
 }
 
+func (pc *pollCycle) Stop() {
+	pc.em.ShutDownAndWait()
+}
+
 func handleClientError() {
 	if err := recover(); err != nil {
 		log.Printf("client has panicked: %s", err)
 	}
+}
+
+func cachedKeyNameFormat(element Element) string {
+	return fmt.Sprintf("%s_%t", element.Name(), element.IsDirectory())
+
 }

@@ -20,7 +20,6 @@ func createTime(t string) time.Time {
 }
 
 func TestPollCycle_NotifyFirstCycle(t *testing.T) {
-	add, mod, del := make(chan Event), make(chan Event), make(chan Event)
 
 	elements := []Element{
 		&testElement{name: "1"}}
@@ -30,12 +29,12 @@ func TestPollCycle_NotifyFirstCycle(t *testing.T) {
 	pc := pollCycle{firstRun: true, polledDirectory: &pd, cachedElements: make(chan map[string]Element, 1)}
 
 	//trigger first run, gets initial cache
-	pc.Notify(add, mod, del)
+	pc.Notify()
 
 	cached := <-pc.cachedElements
 
 	for _, e := range elements {
-		if _, ok := cached[e.Name()]; !ok {
+		if _, ok := cached[cachedKeyNameFormat(e)]; !ok {
 			t.Errorf("%s should exist in cache", e.Name())
 		}
 	}
@@ -43,8 +42,6 @@ func TestPollCycle_NotifyFirstCycle(t *testing.T) {
 }
 
 func TestPollCycle_NotifyDeleted(t *testing.T) {
-
-	add, mod, del := make(chan Event), make(chan Event), make(chan Event, 1)
 
 	elements := []Element{
 		&testElement{name: "1"},
@@ -58,12 +55,12 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
 
 	//trigger first run, gets initial cache
-	pc.Notify(add, mod, del)
+	pc.Notify()
 
 	pd.elements = append(elements[:len(elements)-1])
 
 	// trigger another run
-	pc.Notify(add, mod, del)
+	pc.Notify()
 
 	cached := <-pc.cachedElements
 
@@ -75,8 +72,6 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 
 func TestPollCycle_NotifyAdded(t *testing.T) {
 
-	add, mod, del := make(chan Event, 1), make(chan Event), make(chan Event)
-
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 
 	pd := testPolledDirectory{elements}
@@ -87,16 +82,16 @@ func TestPollCycle_NotifyAdded(t *testing.T) {
 		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
 
 	//trigger first run, gets initial cache
-	pc.Notify(add, mod, del)
+	pc.Notify()
 
 	toBeAddedElement := &testElement{name: "3"}
 	pd.elements = append(elements, toBeAddedElement)
 	// trigger another run
-	pc.Notify(add, mod, del)
+	pc.Notify()
 
 	cached := <-pc.cachedElements
 
-	if _, ok := cached["3"]; !ok {
+	if _, ok := cached["3_false"]; !ok {
 		t.Errorf("Element name %s should have been added and exist in cache", toBeAddedElement.Name())
 	}
 
@@ -104,8 +99,6 @@ func TestPollCycle_NotifyAdded(t *testing.T) {
 
 func TestPollCycle_NotifyModified(t *testing.T) {
 
-	add, mod, del := make(chan Event), make(chan Event, 1), make(chan Event)
-
 	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
 
 	pd := testPolledDirectory{elements}
@@ -116,12 +109,12 @@ func TestPollCycle_NotifyModified(t *testing.T) {
 		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
 
 	//trigger first run, gets initial cache
-	pc.Notify(add, mod, del)
+	pc.Notify()
 
 	elements[0] = &testElement{name: "1", lastModified: createTime("12:00PM")}
 
 	// trigger another run
-	pc.Notify(add, mod, del)
+	pc.Notify()
 
 	cached := <-pc.cachedElements
 	if e, ok := cached["1"]; ok {

@@ -2,6 +2,7 @@ package poller
 
 import (
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -25,11 +26,12 @@ type Element interface {
 // for local filesystem files
 type FileElement struct {
 	os.FileInfo
+	name string
 }
 
 // Name of file returned by FileInfo
 func (f *FileElement) Name() string {
-	return f.FileInfo.Name()
+	return f.name
 }
 
 // LastModified time of file returned by FileInfo
@@ -42,4 +44,35 @@ func (f *FileElement) LastModified() time.Time {
 func (f *FileElement) IsDirectory() bool {
 
 	return f.FileInfo.IsDir()
+}
+
+func (f *FileElement) ListFiles() ([]Element, error) {
+	var fileElements []Element
+	err := filepath.Walk(f.Name(), func(path string, info os.FileInfo, err error) error {
+		fileElements = append(fileElements, &FileElement{FileInfo: info, name: filepath.ToSlash(path)})
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return fileElements, nil
+}
+
+//NewFileDirectory creates a PolledDirectory for the specified root dir.
+// This implementation handles nested directories.
+func NewFileDirectory(rootFilePath string) (PolledDirectory, error) {
+	file, err := os.Open(rootFilePath)
+
+	if err != nil {
+		return nil, err
+	}
+	info, err := file.Stat()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &FileElement{FileInfo: info, name: rootFilePath}, nil
 }

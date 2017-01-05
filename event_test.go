@@ -33,7 +33,9 @@ func TestEventTrigger_OnEvents(t *testing.T) {
 
 	em := eventTriggerManager{receivers: listeners}
 
-	testEvent := &triggeredEvent{&testElement{name: "testElement"}}
+	testEvent := &triggeredEvent{
+		&testElement{name: "testElement"},
+	}
 
 	go em.OnFileAdded(testEvent)
 	go em.OnFileModified(testEvent)

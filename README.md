@@ -21,5 +21,9 @@ remote-poller comes with [FileElement](https://github.com/JoelW-S/remote-poller/
 This type can be used to convert golang's os.FileInfo interface to Element 
 and be used to create simple filesystem polling examples.
 
+You can create your own [Filter](https://github.com/JoelW-S/remote-poller/blob/master/filter.go#L6).
+Creating a filter and assigning it to the poller, tells the event manager what Elements you are interested in.
+This could be a regex filter, allowing events to only occur if Elements name's end in ".zip".
+
 [Examples](https://github.com/JoelW-S/remote-poller/blob/master/examples)
 

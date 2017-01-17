@@ -25,17 +25,33 @@ func TestPoller_Start(t *testing.T) {
 
 	ticker := &testTicker{tickerChan}
 
-	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
+	elements := []Element{
+		&testElement{name: "1"},
+		&testElement{name: "2"},
+	}
 
 	pd := &testPolledDirectory{elements}
 
 	notifyChan := make(chan bool)
 
-	listeners := []Receiver{testReceiver{notify: notifyChan}}
+	listeners := []Receiver{
+		testReceiver{
+			notify: notifyChan,
+		},
+	}
 
-	pc := &pollCycle{polledDirectory: pd, cachedElements: make(chan map[string]Element, 1), em: &eventTriggerManager{receivers: listeners}}
+	pc := &pollCycle{
+		polledDirectory: pd,
+		cachedElements:  make(chan map[string]Element, 1),
+		em: &eventTriggerManager{
+			receivers: listeners,
+		},
+	}
 
-	poller := poller{ticker: ticker, cycler: pc}
+	poller := poller{
+		ticker: ticker,
+		cycler: pc,
+	}
 
 	poller.Start()
 
@@ -52,19 +68,37 @@ func TestPoller_Stop(t *testing.T) {
 	}()
 	tickerChan := make(chan time.Time)
 
-	ticker := &testTicker{tickerChan}
+	ticker := &testTicker{
+		ticker: tickerChan,
+	}
 
-	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
+	elements := []Element{
+		&testElement{name: "1"},
+		&testElement{name: "2"},
+	}
 
 	pd := &testPolledDirectory{elements}
 
 	notifyChan := make(chan bool)
 
-	listeners := []Receiver{testReceiver{notify: notifyChan}}
+	listeners := []Receiver{
+		testReceiver{
+			notify: notifyChan,
+		},
+	}
 
-	pc := &pollCycle{polledDirectory: pd, cachedElements: make(chan map[string]Element, 1), em: &eventTriggerManager{receivers: listeners}}
+	pc := &pollCycle{
+		polledDirectory: pd,
+		cachedElements:  make(chan map[string]Element, 1),
+		em: &eventTriggerManager{
+			receivers: listeners,
+		},
+	}
 
-	poller := poller{ticker: ticker, cycler: pc}
+	poller := poller{
+		ticker: ticker,
+		cycler: pc,
+	}
 
 	poller.Start()
 	poller.Stop()

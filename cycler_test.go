@@ -22,11 +22,16 @@ func createTime(t string) time.Time {
 func TestPollCycle_NotifyFirstCycle(t *testing.T) {
 
 	elements := []Element{
-		&testElement{name: "1"}}
+		&testElement{name: "1"},
+	}
 
 	pd := testPolledDirectory{elements}
 
-	pc := pollCycle{firstRun: true, polledDirectory: &pd, cachedElements: make(chan map[string]Element, 1)}
+	pc := pollCycle{
+		firstRun:        true,
+		polledDirectory: &pd,
+		cachedElements:  make(chan map[string]Element, 1),
+	}
 
 	//trigger first run, gets initial cache
 	pc.Notify()
@@ -45,14 +50,20 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 
 	elements := []Element{
 		&testElement{name: "1"},
-		&testElement{name: "2"}}
+		&testElement{name: "2"},
+	}
 
 	pd := testPolledDirectory{elements}
 
-	pc := pollCycle{firstRun: true,
+	pc := pollCycle{
+		firstRun:        true,
 		polledDirectory: &pd,
 		cachedElements:  make(chan map[string]Element, 1),
-		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
+		em: &eventTriggerManager{
+			receivers: []Receiver{
+				testReceiver{},
+			}},
+	}
 
 	//trigger first run, gets initial cache
 	pc.Notify()
@@ -72,14 +83,22 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 
 func TestPollCycle_NotifyAdded(t *testing.T) {
 
-	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
+	elements := []Element{
+		&testElement{name: "1"},
+		&testElement{name: "2"},
+	}
 
 	pd := testPolledDirectory{elements}
 
-	pc := pollCycle{firstRun: true,
+	pc := pollCycle{
+		firstRun:        true,
 		polledDirectory: &pd,
 		cachedElements:  make(chan map[string]Element, 1),
-		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
+		em: &eventTriggerManager{
+			receivers: []Receiver{
+				testReceiver{},
+			}},
+	}
 
 	//trigger first run, gets initial cache
 	pc.Notify()
@@ -99,14 +118,20 @@ func TestPollCycle_NotifyAdded(t *testing.T) {
 
 func TestPollCycle_NotifyModified(t *testing.T) {
 
-	elements := []Element{&testElement{name: "1"}, &testElement{name: "2"}}
+	elements := []Element{
+		&testElement{name: "1"},
+		&testElement{name: "2"},
+	}
 
 	pd := testPolledDirectory{elements}
 
 	pc := pollCycle{firstRun: true,
 		polledDirectory: &pd,
 		cachedElements:  make(chan map[string]Element, 1),
-		em:              &eventTriggerManager{receivers: []Receiver{testReceiver{}}}}
+		em: &eventTriggerManager{receivers: []Receiver{
+			testReceiver{},
+		}},
+	}
 
 	//trigger first run, gets initial cache
 	pc.Notify()

@@ -40,9 +40,9 @@ func TestElement_LastModified(t *testing.T) {
 
 func TestElement_IsDirectory(t *testing.T) {
 
-	e := testElement{isDirectory: false}
+	e := testElement{}
 
 	if actual := e.isDirectory; false != actual {
-		t.Errorf("Expected false and got %s", actual)
+		t.Errorf("Expected false and got %t", actual)
 	}
 }

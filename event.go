@@ -34,40 +34,62 @@ type eventManager interface {
 type eventTriggerManager struct {
 	receivers []Receiver
 	wg        sync.WaitGroup
+	filters   []Filter
 }
 
 func (em *eventTriggerManager) OnFileAdded(event Event) {
 
-	for _, r := range em.receivers {
-		em.wg.Add(1)
-		go func(r Receiver) {
-			defer em.wg.Done()
-			r.OnFileAdded(event)
-		}(r)
+	for _, filter := range em.filters {
+
+		if !filter.Accept(event.TriggerCause()) {
+			continue
+		}
+
+		for _, r := range em.receivers {
+			em.wg.Add(1)
+			go func(r Receiver) {
+				defer em.wg.Done()
+				r.OnFileAdded(event)
+			}(r)
+		}
 	}
 
 }
 
 func (em *eventTriggerManager) OnFileDeleted(event Event) {
 
-	for _, r := range em.receivers {
-		em.wg.Add(1)
-		go func(r Receiver) {
-			defer em.wg.Done()
-			r.OnFileDeleted(event)
-		}(r)
+	for _, filter := range em.filters {
+
+		if !filter.Accept(event.TriggerCause()) {
+			continue
+		}
+
+		for _, r := range em.receivers {
+			em.wg.Add(1)
+			go func(r Receiver) {
+				defer em.wg.Done()
+				r.OnFileDeleted(event)
+			}(r)
+		}
+
 	}
 
 }
 
 func (em *eventTriggerManager) OnFileModified(event Event) {
+	for _, filter := range em.filters {
 
-	for _, r := range em.receivers {
-		em.wg.Add(1)
-		go func(r Receiver) {
-			defer em.wg.Done()
-			r.OnFileModified(event)
-		}(r)
+		if !filter.Accept(event.TriggerCause()) {
+			continue
+		}
+
+		for _, r := range em.receivers {
+			em.wg.Add(1)
+			go func(r Receiver) {
+				defer em.wg.Done()
+				r.OnFileModified(event)
+			}(r)
+		}
 	}
 }
 

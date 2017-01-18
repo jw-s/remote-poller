@@ -61,7 +61,7 @@ func TestPollCycle_NotifyDeleted(t *testing.T) {
 		cachedElements:  make(chan map[string]Element, 1),
 		em: &eventTriggerManager{
 			receivers: []Receiver{
-				testReceiver{},
+				&testEventReceiver{},
 			}},
 	}
 
@@ -96,7 +96,7 @@ func TestPollCycle_NotifyAdded(t *testing.T) {
 		cachedElements:  make(chan map[string]Element, 1),
 		em: &eventTriggerManager{
 			receivers: []Receiver{
-				testReceiver{},
+				&testEventReceiver{},
 			}},
 	}
 
@@ -129,7 +129,7 @@ func TestPollCycle_NotifyModified(t *testing.T) {
 		polledDirectory: &pd,
 		cachedElements:  make(chan map[string]Element, 1),
 		em: &eventTriggerManager{receivers: []Receiver{
-			testReceiver{},
+			&testEventReceiver{},
 		}},
 	}
 

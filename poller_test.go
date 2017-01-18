@@ -35,7 +35,7 @@ func TestPoller_Start(t *testing.T) {
 	notifyChan := make(chan bool)
 
 	listeners := []Receiver{
-		testReceiver{
+		testReceiverChan{
 			notify: notifyChan,
 		},
 	}
@@ -82,7 +82,7 @@ func TestPoller_Stop(t *testing.T) {
 	notifyChan := make(chan bool)
 
 	listeners := []Receiver{
-		testReceiver{
+		testReceiverChan{
 			notify: notifyChan,
 		},
 	}

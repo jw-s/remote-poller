@@ -34,7 +34,13 @@ func main() {
 		panic(err)
 	}
 
-	filesystemPoller := poller.NewPoller(time.Duration(15*time.Second), polledDirectory, []poller.Receiver{&stdOutListener{}})
+	filesystemPoller := poller.NewPoller(
+		time.Duration(15*time.Second),
+		polledDirectory,
+		[]poller.Receiver{
+			&stdOutListener{},
+		},
+	)
 
 	//Starts poller non blocking
 	filesystemPoller.Start()

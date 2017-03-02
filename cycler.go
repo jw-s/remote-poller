@@ -19,6 +19,7 @@ type PolledDirectory interface {
 }
 
 type pollCycle struct {
+	mutex           sync.Mutex
 	firstRun        bool
 	polledDirectory PolledDirectory
 	cachedElements  chan map[string]Element
@@ -80,9 +81,8 @@ func (pc *pollCycle) onFirstRun() error {
 func (pc *pollCycle) Notify() error {
 	var wg sync.WaitGroup
 
-	if pc.firstRun {
-
-		return pc.onFirstRun()
+	if err := pc.isFirstRun(); err != nil {
+		return err
 	}
 
 	cachedElements := <-pc.cachedElements
@@ -136,4 +136,15 @@ func handleClientError() {
 func cachedKeyNameFormat(element Element) string {
 	return fmt.Sprintf("%s_%t", element.Name(), element.IsDirectory())
 
+}
+
+func (pc *pollCycle) isFirstRun() error {
+	pc.mutex.Lock()
+
+	defer pc.mutex.Unlock()
+
+	if pc.firstRun {
+		return pc.onFirstRun()
+	}
+	return nil
 }
